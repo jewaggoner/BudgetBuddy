@@ -12,20 +12,31 @@
 <table class="table">
     <thead>
         <tr>
+            @*<th>
+            @Html.DisplayNameFor(model => model.CreateDate)
+        </th>*@
+            @*<th>
+            User
+        </th>*@
             <th>
-                @Html.DisplayNameFor(model => model.CreateDate)
+                <a href="@Url.Action("Index", new { sortOrder = ViewBag.DateSortParm })">
+                    @Html.DisplayNameFor(model => model.Date)
+                </a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.IdentityUser)
+                <a href="@Url.Action("Index", new { sortOrder = ViewBag.DescriptionSortParm })">
+                    @Html.DisplayNameFor(model => model.Description)
+                </a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Date)
+                <a href="@Url.Action("Index", new { sortOrder = ViewBag.AmountSortParm })">
+                    @Html.DisplayNameFor(model => model.Amount)
+                </a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Amount)
+                <a href="@Url.Action("Index", new { sortOrder = ViewBag.RemarkSortParm })">
+                    @Html.DisplayNameFor(model => model.Remark)
+                </a>
             </th>
             <th></th>
         </tr>
@@ -33,12 +44,12 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            <td>
+            @*<td>
                 @Html.DisplayFor(modelItem => item.CreateDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IdentityUser.Id)
-            </td>
+            </td>*@
+            @*<td>
+                @Html.DisplayFor(modelItem => item.IdentityUser.Email)
+            </td>*@
             <td>
                 @Html.DisplayFor(modelItem => item.Date)
             </td>
@@ -47,6 +58,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Amount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Remark)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |

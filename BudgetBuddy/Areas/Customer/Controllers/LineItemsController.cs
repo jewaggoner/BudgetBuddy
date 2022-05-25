@@ -37,10 +37,51 @@ namespace BudgetBuddy.Areas.Customer.Controllers
         //}
 
         // GET: Customer/LineItems
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder)
         {
             var applicationDbContext = _context.LineItem.Include(l => l.IdentityUser);
-            return View(await applicationDbContext.ToListAsync());
+
+            ViewBag.DateSortParm = sortOrder == "date" ? "date_desc" : "date";
+            ViewBag.DescriptionSortParm = sortOrder == "description" ? "description_desc" : "description";
+            ViewBag.AmountSortParm = sortOrder == "amount" ? "amount_desc" : "amount";
+            ViewBag.RemarkSortParm = sortOrder == "remark" ? "remark_desc" : "remark";
+            ViewBag.SortOrder = sortOrder;
+            var entries = from p in applicationDbContext
+                          select p;
+
+            switch (sortOrder)
+            {
+                case "date":
+                    entries = entries.OrderBy(s => s.Date);
+                    break;
+                case "date_desc":
+                    entries = entries.OrderByDescending(s => s.Date);
+                    break;
+                case "description":
+                    entries = entries.OrderBy(s => s.Description);
+                    break;
+                case "description_desc":
+                    entries = entries.OrderByDescending(s => s.Description);
+                    break;
+                case "amount":
+                    entries = entries.OrderBy(s => s.Amount);
+                    break;
+                case "amount_desc":
+                    entries = entries.OrderByDescending(s => s.Amount);
+                    break;
+                case "remark":
+                    entries = entries.OrderBy(s => s.Remark);
+                    break;
+                case "remark_desc":
+                    entries = entries.OrderByDescending(s => s.Remark);
+                    break;
+                default:
+                    entries = entries.OrderByDescending(s => s.Date);
+                    break;
+            }
+
+
+            return View(await entries.ToListAsync());
         }
 
         // GET: Customer/LineItems/Details/5
@@ -74,7 +115,7 @@ namespace BudgetBuddy.Areas.Customer.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Date,Description,Amount")] LineItem lineItem)
+        public async Task<IActionResult> Create([Bind("ID,Date,Description,Amount,Remark")] LineItem lineItem)
         {
             if (ModelState.IsValid)
             {
@@ -111,7 +152,7 @@ namespace BudgetBuddy.Areas.Customer.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("ID,CreateDate,UserId,Date,Description,Amount")] LineItem lineItem)
+        public async Task<IActionResult> Edit(Guid id, [Bind("ID,CreateDate,UserId,Date,Description,Amount,Remark")] LineItem lineItem)
         {
             if (id != lineItem.ID)
             {
@@ -187,7 +228,7 @@ namespace BudgetBuddy.Areas.Customer.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upload(IFormFile upload)
+        public async Task<IActionResult> Upload(IFormFile upload, string remark)
         {
             if (ModelState.IsValid)
             {
@@ -216,14 +257,16 @@ namespace BudgetBuddy.Areas.Customer.Controllers
                             string description = row["Description"].ToString();
                             double amount = double.Parse(row["Amount"].ToString());
 
-                            var lineItem = new LineItem();
-
-                            lineItem.Date = date;
-                            lineItem.Description = description;
-                            lineItem.Amount = amount;
-                            lineItem.ID = Guid.NewGuid();
-                            lineItem.CreateDate = DateTime.Now;
-                            lineItem.UserId = userManager.GetUserId(HttpContext.User);
+                            var lineItem = new LineItem
+                            {
+                                Date = date,
+                                Description = description,
+                                Amount = amount,
+                                Remark = remark,
+                                ID = Guid.NewGuid(),
+                                CreateDate = DateTime.Now,
+                                UserId = userManager.GetUserId(HttpContext.User)
+                            };
                             _context.Add(lineItem);
                             await _context.SaveChangesAsync();
                             
