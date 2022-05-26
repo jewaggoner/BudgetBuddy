@@ -14,10 +14,12 @@ using System.IO;
 using System.Data;
 using LumenWorks.Framework.IO.Csv;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace BudgetBuddy.Areas.Customer.Controllers
 {
     [Area("Customer")]
+    [Authorize]
     public class LineItemsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -228,7 +230,8 @@ namespace BudgetBuddy.Areas.Customer.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upload(IFormFile upload, string remark)
+        // public async Task<IActionResult> Upload(IFormFile upload, string remark)
+        public ActionResult Upload(IFormFile upload, string remark)
         {
             if (ModelState.IsValid)
             {
@@ -245,8 +248,8 @@ namespace BudgetBuddy.Areas.Customer.Controllers
                         {
                             csvTable.Load(csvReader);
                         }
-                        
-                        
+
+                        List<LineItem> lineItems = new List<LineItem>();
 
                         foreach (DataRow row in csvTable.Rows)
                         {
@@ -267,11 +270,19 @@ namespace BudgetBuddy.Areas.Customer.Controllers
                                 CreateDate = DateTime.Now,
                                 UserId = userManager.GetUserId(HttpContext.User)
                             };
-                            _context.Add(lineItem);
-                            await _context.SaveChangesAsync();
+
+                            lineItems.Add(lineItem);
                             
                         }
-                        return RedirectToAction(nameof(Index));
+                        TempData["lineItems"] = JsonConvert.SerializeObject(lineItems);
+                        return RedirectToAction("Confirm");
+                        //return Confirm(lineItems);
+
+                        //    _context.Add(lineItem);
+                        //    await _context.SaveChangesAsync();
+
+                        //}
+                        //return RedirectToAction(nameof(Index));
                     }
                     else
                     {
@@ -287,7 +298,13 @@ namespace BudgetBuddy.Areas.Customer.Controllers
             return View();
         }
 
-      
+
+        public ActionResult Confirm()
+        {
+            List<LineItem> lineItems = JsonConvert.DeserializeObject<List<LineItem>>(TempData["lineItems"].ToString());
+            return View(lineItems);
+        }
+
 
     }
 }

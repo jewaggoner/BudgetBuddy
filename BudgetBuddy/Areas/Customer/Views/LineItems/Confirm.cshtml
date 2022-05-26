@@ -1,0 +1,27 @@
+﻿@model System.Collections.Generic.List<LineItem>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Remark</th>
+            <th>Category</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        @foreach (LineItem l in Model)
+        {
+            <tr>
+                <td>@l.Date</td>
+                <td>@l.Description</td>
+                <td>@l.Amount</td>
+                <td>@l.Remark</td>
+                <td>Category Placeholder</td>
+            </tr>
+        }
+    </tbody>
+</table>
