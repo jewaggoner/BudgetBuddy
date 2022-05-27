@@ -1,27 +1,91 @@
 ﻿@model System.Collections.Generic.List<LineItem>
 
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Remark</th>
-            <th>Category</th>
-        </tr>
-    </thead>
-    <tbody>
-
-        @foreach (LineItem l in Model)
-        {
+@using (Html.BeginForm("Confirm", "LineItems", null, FormMethod.Post, true, new { enctype = "multipart/form-data" }))
+{
+    <table class="table">
+        <thead>
             <tr>
-                <td>@l.Date</td>
-                <td>@l.Description</td>
-                <td>@l.Amount</td>
-                <td>@l.Remark</td>
-                <td>Category Placeholder</td>
+                <th>
+                    Date
+                </th>
+                <th>
+                    Description
+                </th>
+                <th>
+                    Amount
+                </th>
+                <th>
+                    Remark
+                </th>
+                <th>
+                    Category
+                </th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            //@foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.Hidden("lineItems.Index", (@i + 10))
+                        @Html.TextBox("lineItems[" + (@i + 10) + "].Date",
+                        Model[i].Date, new { @readonly = "readonly" })
+
+                        @*@Html.DisplayFor(modelItem => item.Date)
+                            @Html.HiddenFor(modelItem => item.Date)*@
+                    </td>
+                    <td>
+                        @Html.TextBox("lineItems[" + (@i + 10) + "].Description", Model[i].Description, new { @readonly = "readonly" })
+
+                        @*@Html.DisplayFor(modelItem => item.Description)
+                            @Html.HiddenFor(modelItem => item.Description)*@
+                    </td>
+                    <td>
+                        @Html.TextBox("lineItems[" + (@i + 10) + "].Amount", Model[i].Amount, new { @readonly = "readonly" })
+                        @*@Html.DisplayFor(modelItem => item.Amount)
+                            @Html.HiddenFor(modelItem => item.Amount)*@
+                    </td>
+                    <td>
+                        @Html.TextBox("lineItems[" + (@i + 10) + "].Remark", Model[i].Remark)
+                    </td>
+                    <td>
+                        @Html.DropDownList("lineItems[" + (@i + 10) + "].Category", new SelectList(Enum.GetValues(typeof(Category))), Model[i].Category)
+
+
+                        @*<select id="categorySelect" name="category">
+                                <option value="Other">Other</option>
+                                <option value="Food">Food</option>
+                                <option value="Gas">Gas</option>
+                                <option value="Clothes">Clothes</option>
+                                <option value="Entertainment">Entertainment</option>
+                            </select>*@
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <input id="testbtn" type="submit" value="Test"  class="btn btn-default"/>
+
+    <input id="submitbtn" type="submit" value="Confirm" class="btn btn-default" onclick="submit()"/>
+}
+
+
+<script>
+
+
+
+   // window.addEventListener('beforeunload', function (e) {
+        // Cancel the event
+        //alert(clicked)
+
+        //if (clicked == false) {
+        //    e.preventDefault();
+        //}
+        // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+        // Chrome requires returnValue to be set
+        //e.returnValue = '';
+  //  });
+
+        //this only works on the first refresh for some reason and should be looked into later
+</script>

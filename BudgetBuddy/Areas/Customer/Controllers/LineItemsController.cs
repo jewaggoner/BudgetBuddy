@@ -33,10 +33,6 @@ namespace BudgetBuddy.Areas.Customer.Controllers
             this.userManager = userManager;
         }
 
-        //public LineItemsController(ApplicationDbContext context)
-        //{
-        //    _context = context;
-        //}
 
         // GET: Customer/LineItems
         public async Task<IActionResult> Index(string sortOrder)
@@ -47,6 +43,7 @@ namespace BudgetBuddy.Areas.Customer.Controllers
             ViewBag.DescriptionSortParm = sortOrder == "description" ? "description_desc" : "description";
             ViewBag.AmountSortParm = sortOrder == "amount" ? "amount_desc" : "amount";
             ViewBag.RemarkSortParm = sortOrder == "remark" ? "remark_desc" : "remark";
+            ViewBag.CategorySortParm = sortOrder == "category" ? "category_desc" : "category";
             ViewBag.SortOrder = sortOrder;
             var entries = from p in applicationDbContext
                           select p;
@@ -76,6 +73,12 @@ namespace BudgetBuddy.Areas.Customer.Controllers
                     break;
                 case "remark_desc":
                     entries = entries.OrderByDescending(s => s.Remark);
+                    break;
+                case "category":
+                    entries = entries.OrderBy(s => s.Category);
+                    break;
+                case "category_desc":
+                    entries = entries.OrderByDescending(s => s.Category);
                     break;
                 default:
                     entries = entries.OrderByDescending(s => s.Date);
@@ -117,7 +120,7 @@ namespace BudgetBuddy.Areas.Customer.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Date,Description,Amount,Remark")] LineItem lineItem)
+        public async Task<IActionResult> Create([Bind("ID,Date,Description,Amount,Remark,Category")] LineItem lineItem)
         {
             if (ModelState.IsValid)
             {
@@ -154,7 +157,7 @@ namespace BudgetBuddy.Areas.Customer.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("ID,CreateDate,UserId,Date,Description,Amount,Remark")] LineItem lineItem)
+        public async Task<IActionResult> Edit(Guid id, [Bind("ID,CreateDate,UserId,Date,Description,Amount,Remark,Category")] LineItem lineItem)
         {
             if (id != lineItem.ID)
             {
@@ -260,6 +263,28 @@ namespace BudgetBuddy.Areas.Customer.Controllers
                             string description = row["Description"].ToString();
                             double amount = double.Parse(row["Amount"].ToString());
 
+
+                            var applicationDbContext = _context.LineItem.Include(l => l.IdentityUser);
+
+                            var query = from l in applicationDbContext
+                                        where l.Description == description
+                                        select l;
+
+                            var alike = query.FirstOrDefault<LineItem>();
+
+
+
+
+                            //using (var context = new ApplicationDbContext())
+                            //{
+                            //    var query = from l in context.LineItem
+                            //                where l.Description == description
+                            //                select l;
+
+                            //    alike = query.FirstOrDefault<LineItem>();
+                            //}
+
+
                             var lineItem = new LineItem
                             {
                                 Date = date,
@@ -270,19 +295,14 @@ namespace BudgetBuddy.Areas.Customer.Controllers
                                 CreateDate = DateTime.Now,
                                 UserId = userManager.GetUserId(HttpContext.User)
                             };
+                            if (alike != null) { lineItem.Category = alike.Category; }
 
                             lineItems.Add(lineItem);
-                            
+
                         }
                         TempData["lineItems"] = JsonConvert.SerializeObject(lineItems);
                         return RedirectToAction("Confirm");
-                        //return Confirm(lineItems);
 
-                        //    _context.Add(lineItem);
-                        //    await _context.SaveChangesAsync();
-
-                        //}
-                        //return RedirectToAction(nameof(Index));
                     }
                     else
                     {
@@ -301,9 +321,39 @@ namespace BudgetBuddy.Areas.Customer.Controllers
 
         public ActionResult Confirm()
         {
-            List<LineItem> lineItems = JsonConvert.DeserializeObject<List<LineItem>>(TempData["lineItems"].ToString());
-            return View(lineItems);
+            try
+            {
+                List<LineItem> lineItems = JsonConvert.DeserializeObject<List<LineItem>>(TempData["lineItems"].ToString());
+                return View(lineItems);
+            }
+            catch (NullReferenceException e)
+            {
+                return RedirectToAction("Upload");
+            }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Confirm(List<LineItem> lineItems)
+        {
+
+            if (ModelState.IsValid)
+            {
+                foreach (LineItem lineItem in lineItems)
+                {
+                    lineItem.ID = Guid.NewGuid();
+                    lineItem.CreateDate = DateTime.Now;
+                    lineItem.UserId = userManager.GetUserId(HttpContext.User);
+                    _context.Add(lineItem);
+                    await _context.SaveChangesAsync();
+                }
+                return RedirectToAction(nameof(Index));
+
+            }
+            return View(lineItems);
+
+        }
+
 
 
     }
